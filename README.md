@@ -13,6 +13,6 @@ allprojects {
 2.Add the dependency
 ```
 dependencies {
-    implementation 'com.github.pengxurui:OnActivityResult:0.0.1'
+    implementation 'com.github.pengxurui:OnActivityResult:0.0.2'
 }
 ```
