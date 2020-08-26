@@ -3,6 +3,7 @@ package com.xurui.onresult;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
@@ -10,7 +11,11 @@ import androidx.fragment.app.FragmentManager;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.xurui.onresult.ActivityResult.TAG;
+
 /**
+ * Fragment搜索器
+ * <p>
  * Created by pengxr on 2020/8/25.
  */
 public class RequestRetriever implements Handler.Callback {
@@ -22,6 +27,7 @@ public class RequestRetriever implements Handler.Callback {
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
 
+    private final Map<android.app.FragmentManager, RequestFragment> pendingRequestFragments = new HashMap<>();
     private final Map<FragmentManager, SupportRequestFragment> pendingSupportRequestFragments = new HashMap<>();
 
     @NonNull
@@ -36,6 +42,23 @@ public class RequestRetriever implements Handler.Callback {
                 mHandler.obtainMessage(ID_REMOVE_SUPPORT_FRAGMENT, fm).sendToTarget();
             }
         }
+        Log.w(TAG, "support fragment = " + current.hashCode());
+        return current;
+    }
+
+    @NonNull
+    RequestFragment getRequestManagerFragment(@NonNull final android.app.FragmentManager fm) {
+        RequestFragment current = (RequestFragment) fm.findFragmentByTag(FRAGMENT_TAG);
+        if (current == null) {
+            current = pendingRequestFragments.get(fm); // 双重检查，因为 commitAllowingStateLoss 可能在消息队列里
+            if (current == null) {
+                current = new RequestFragment();
+                pendingRequestFragments.put(fm, current);
+                fm.beginTransaction().add(current, FRAGMENT_TAG).commitAllowingStateLoss();
+                mHandler.obtainMessage(ID_REMOVE_FRAGMENT, fm).sendToTarget();
+            }
+        }
+        Log.w(TAG, "fragment = " + current.hashCode());
         return current;
     }
 
@@ -46,9 +69,9 @@ public class RequestRetriever implements Handler.Callback {
         Object key = null;
         switch (msg.what) {
             case ID_REMOVE_FRAGMENT:
-//                android.app.FragmentManager fm = (android.app.FragmentManager) message.obj;
-//                key = fm;
-//                removed = pendingRequestManagerFragments.remove(fm);
+                android.app.FragmentManager fm = (android.app.FragmentManager) msg.obj;
+                key = fm;
+                removed = pendingRequestFragments.remove(fm);
                 break;
             case ID_REMOVE_SUPPORT_FRAGMENT:
                 FragmentManager supportFm = (FragmentManager) msg.obj;
@@ -59,9 +82,9 @@ public class RequestRetriever implements Handler.Callback {
                 handled = false;
                 break;
         }
-//        if (handled && removed == null && Log.isLoggable(TAG, Log.WARN)) {
-//            Log.w(TAG, "Failed to remove expected request manager fragment, manager: " + key);
-//        }
+        if (handled && removed == null && Log.isLoggable(TAG, Log.WARN)) {
+            Log.w(TAG, "Failed to remove expected request fragment, manager: " + key);
+        }
         return handled;
     }
 }

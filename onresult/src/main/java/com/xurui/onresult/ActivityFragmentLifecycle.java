@@ -24,10 +24,7 @@ class ActivityFragmentLifecycle {
     }
 
     void onDestroy() {
-
-        for (Map.Entry<Integer, WeakReference<OnResultListener>> entry : lifecycleListeners.entrySet()) {
-            lifecycleListeners.clear();
-        }
+        lifecycleListeners.clear();
     }
 
     void onActivityResult(int requestCode, int resultCode, Intent data) {

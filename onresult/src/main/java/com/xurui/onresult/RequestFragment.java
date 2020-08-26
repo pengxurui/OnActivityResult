@@ -1,19 +1,19 @@
 package com.xurui.onresult;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 
 /**
  * 空白Fragment
- *
- * Created by pengxr on 2020/8/25.
+ * <p>
+ * Created by pengxr on 2020/8/26.
  */
-public class SupportRequestFragment extends Fragment {
+public class RequestFragment extends Fragment {
 
     private final ActivityFragmentLifecycle lifecycle = new ActivityFragmentLifecycle();
 
@@ -64,4 +64,5 @@ public class SupportRequestFragment extends Fragment {
         pendingRequest.remove(requestCode);
         lifecycle.removeListener(requestCode, listener);
     }
+
 }
