@@ -14,13 +14,13 @@ import java.util.Map;
 import static com.xurui.onresult.ActivityResult.TAG;
 
 /**
- * Fragment搜索器
+ * to find proxy fragment
  * <p>
  * Created by pengxr on 2020/8/25.
  */
-public class RequestRetriever implements Handler.Callback {
+class RequestRetriever implements Handler.Callback {
 
-    private static final String FRAGMENT_TAG = "com.xurui.onresult.RequestRetriever";
+    private static final String FRAGMENT_TAG = "RequestRetriever";
 
     private static final int ID_REMOVE_FRAGMENT = 1;
     private static final int ID_REMOVE_SUPPORT_FRAGMENT = 2;
@@ -38,7 +38,7 @@ public class RequestRetriever implements Handler.Callback {
             if (current == null) {
                 current = new SupportRequestFragment();
                 pendingSupportRequestFragments.put(fm, current);
-                fm.beginTransaction().add(current, FRAGMENT_TAG).commitAllowingStateLoss();
+                fm.beginTransaction().add(current, FRAGMENT_TAG).commitNowAllowingStateLoss();
                 mHandler.obtainMessage(ID_REMOVE_SUPPORT_FRAGMENT, fm).sendToTarget();
             }
         }
@@ -54,7 +54,7 @@ public class RequestRetriever implements Handler.Callback {
             if (current == null) {
                 current = new RequestFragment();
                 pendingRequestFragments.put(fm, current);
-                fm.beginTransaction().add(current, FRAGMENT_TAG).commitAllowingStateLoss();
+                fm.beginTransaction().add(current, FRAGMENT_TAG).commitAllowingStateLoss(); // commitNowAllowingStateLoss requires API 24
                 mHandler.obtainMessage(ID_REMOVE_FRAGMENT, fm).sendToTarget();
             }
         }

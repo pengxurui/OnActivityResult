@@ -3,7 +3,6 @@ package com.xurui.onresult;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.Intent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -17,16 +16,16 @@ import androidx.fragment.app.FragmentActivity;
  */
 public class ActivityResult {
 
-    public static final String TAG = "OnActivityResult";
+    static final String TAG = "OnActivityResult";
 
     private static volatile ActivityResult sActivityResult;
 
     private RequestRetriever mRequestRetriever = new RequestRetriever();
 
     @NonNull
-    public static ActivityResult get() {
+    private static ActivityResult get() {
         if (sActivityResult == null) {
-            synchronized (ActivityResult.class) {
+            synchronized (ActivityResult.class) { // DCL
                 if (sActivityResult == null) {
                     sActivityResult = new ActivityResult();
                 }
@@ -35,49 +34,50 @@ public class ActivityResult {
         return sActivityResult;
     }
 
-    public void start(@NonNull FragmentActivity activity, @NonNull Intent intent, int requestCode, @NonNull OnResultListener listener) {
+    public static Request with(@NonNull FragmentActivity activity) {
         Preconditions.checkNotNull(activity);
-        SupportRequestFragment emptyFragment = mRequestRetriever.getRequestManagerFragment(activity.getSupportFragmentManager());
-        emptyFragment.start(intent, requestCode, listener);
+
+        return get().mRequestRetriever.getRequestManagerFragment(activity.getSupportFragmentManager());
     }
 
-    public void start(@NonNull Fragment fragment, @NonNull Intent intent, int requestCode, @NonNull OnResultListener listener) {
+    public static Request with(@NonNull Fragment fragment) {
         Preconditions.checkNotNull(fragment);
-        Preconditions.checkNotNull(fragment.getActivity(), "You cannot start a load on a fragment before it is attached");
-        start(fragment.getActivity(), intent, requestCode, listener);
+        Preconditions.checkNotNull(fragment.getActivity(), "You cannot start a load on a proxy fragment before it is attached");
+
+        return with(fragment.getActivity());
     }
 
-    public void start(@NonNull Activity activity, @NonNull Intent intent, int requestCode, @NonNull OnResultListener listener) {
+    public static Request with(@NonNull Activity activity) {
         Preconditions.checkNotNull(activity);
-        RequestFragment emptyFragment = mRequestRetriever.getRequestManagerFragment(activity.getFragmentManager());
-        emptyFragment.start(intent, requestCode, listener);
+
+        return get().mRequestRetriever.getRequestManagerFragment(activity.getFragmentManager());
     }
 
-    public void start(@NonNull android.app.Fragment fragment, @NonNull Intent intent, int requestCode, @NonNull OnResultListener listener) {
+    public static Request with(@NonNull android.app.Fragment fragment) {
         Preconditions.checkNotNull(fragment);
-        Preconditions.checkNotNull(fragment.getActivity(), "You cannot start a load on a fragment before it is attached");
-        start(fragment.getActivity(), intent, requestCode, listener);
+        Preconditions.checkNotNull(fragment.getActivity(), "You cannot start a load on a proxy fragment before it is attached");
+
+        return with(fragment.getActivity());
     }
 
-    public void start(@NonNull View view, @NonNull Intent intent, int requestCode, @NonNull OnResultListener listener) {
+    public static Request with(@NonNull View view) {
         Preconditions.checkNotNull(view);
-        Preconditions.checkNotNull(view.getContext(), "Unable to obtain a request fragment for a view without a Context");
+        Preconditions.checkNotNull(view.getContext(), "Unable to obtain a proxy fragment for a view without a Context");
+
         Activity activity = findActivity(view.getContext());
 
         // The view might be somewhere else, like a service.
-        if (activity == null) {
-            return;
-        }
+        Preconditions.checkNotNull(activity);
 
         if (activity instanceof FragmentActivity) {
-            start((FragmentActivity) activity, intent, requestCode, listener);
+            return with((FragmentActivity) activity);
         } else {
-            start(activity, intent, requestCode, listener);
+            return with(activity);
         }
     }
 
     @Nullable
-    private Activity findActivity(@NonNull Context context) {
+    private static Activity findActivity(@NonNull Context context) {
         if (context instanceof Activity) {
             return (Activity) context;
         } else if (context instanceof ContextWrapper) {

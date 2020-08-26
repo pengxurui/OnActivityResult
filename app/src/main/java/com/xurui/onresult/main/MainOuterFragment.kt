@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.xurui.onresult.ActivityIntentLauncher
 import com.xurui.onresult.ActivityResult
 import com.xurui.onresult.R
 import com.xurui.onresult.second.SecondActivity
@@ -26,13 +27,19 @@ class MainOuterFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_main_outer, container, false)
         root.findViewById<TextView>(R.id.tv_fragment).setOnClickListener {
-            val intent = Intent(context, SecondActivity::class.java)
 
-            ActivityResult.get().start(tv_fragment, intent, 2) { resultCode, data ->
-                if (Activity.RESULT_OK == resultCode) {
-                    Toast.makeText(context, "回调MainOuterFragment", Toast.LENGTH_SHORT).show();
+            val launcher = object : ActivityIntentLauncher {
+
+                override fun createIntent() = Intent(context, SecondActivity::class.java)
+
+                override fun onActivityResult(resultCode: Int, data: Intent?) {
+                    if (Activity.RESULT_OK == resultCode) {
+                        Toast.makeText(context, "back to MainOuterFragment", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
+
+            ActivityResult.with(tv_fragment).start(launcher);
         }
         return root
     }

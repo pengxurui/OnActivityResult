@@ -4,20 +4,22 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * 空白Fragment
+ * proxy fragment
  * <p>
  * Created by pengxr on 2020/8/26.
  */
-public class RequestFragment extends Fragment {
+public class RequestFragment extends Fragment implements Request {
 
     private final ActivityFragmentLifecycle lifecycle = new ActivityFragmentLifecycle();
 
-    private SparseArray<Intent> pendingRequest = new SparseArray<>();
+    private Set<ActivityIntentLauncher> pendingRequest = new HashSet<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,14 +36,10 @@ public class RequestFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        if (0 != pendingRequest.size()) {
-            for (int index = 0; index < pendingRequest.size(); index++) {
-                int requestCode = pendingRequest.keyAt(index);
-                Intent intent = pendingRequest.valueAt(index);
-                startActivityForResult(intent, requestCode);
-            }
-            pendingRequest.clear();
+        for (ActivityIntentLauncher launcher : pendingRequest) {
+            start(launcher);
         }
+        pendingRequest.clear();
     }
 
     @Override
@@ -50,19 +48,20 @@ public class RequestFragment extends Fragment {
         lifecycle.onActivityResult(requestCode, resultCode, data);
     }
 
-    public void start(Intent intent, int requestCode, @NonNull OnResultListener listener) {
+    @Override
+    public void start(@NonNull ActivityIntentLauncher launcher) {
         if (null != getActivity()) {
             // 已经 Attach
-            startActivityForResult(intent, requestCode);
+            int requestCode = lifecycle.addListener(launcher);
+            startActivityForResult(launcher.createIntent(), requestCode);
         } else {
-            pendingRequest.put(requestCode, intent);
+            pendingRequest.add(launcher);
         }
-        lifecycle.addListener(requestCode, listener);
     }
 
-    public void remove(int requestCode, @NonNull OnResultListener listener) {
-        pendingRequest.remove(requestCode);
-        lifecycle.removeListener(requestCode, listener);
+    @Override
+    public void remove(@NonNull ActivityIntentLauncher launcher) {
+        pendingRequest.remove(launcher);
+        lifecycle.removeListener(launcher);
     }
-
 }

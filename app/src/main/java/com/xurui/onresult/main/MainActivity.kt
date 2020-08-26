@@ -2,9 +2,10 @@ package com.xurui.onresult.main
 
 import android.app.Activity
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.xurui.onresult.ActivityIntentLauncher
 import com.xurui.onresult.ActivityResult
 import com.xurui.onresult.R
 import com.xurui.onresult.second.SecondActivity
@@ -18,13 +19,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         tv_activity.setOnClickListener {
-            val intent = Intent(this, SecondActivity::class.java)
+            val launcher = object : ActivityIntentLauncher {
 
-            ActivityResult.get().start(this, intent, 1) { resultCode, data ->
-                if (Activity.RESULT_OK == resultCode) {
-                    Toast.makeText(this, "回调MainActivity", Toast.LENGTH_SHORT).show();
+                override fun createIntent() = Intent(this@MainActivity, SecondActivity::class.java)
+
+                override fun onActivityResult(resultCode: Int, data: Intent?) {
+                    if (Activity.RESULT_OK == resultCode) {
+                        Toast.makeText(this@MainActivity, "back to MainActivity", Toast.LENGTH_SHORT)
+                            .show();
+                    }
                 }
             }
+
+            ActivityResult.with(this).start(launcher)
         }
     }
 }

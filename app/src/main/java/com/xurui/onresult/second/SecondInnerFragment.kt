@@ -3,6 +3,7 @@ package com.xurui.onresult.second
 import android.app.Activity
 import android.content.Intent
 import android.widget.Toast
+import com.xurui.onresult.ActivityIntentLauncher
 import com.xurui.onresult.ActivityResult
 import com.xurui.onresult.base.BaseFragment
 import com.xurui.onresult.third.ThirdActivity
@@ -15,12 +16,17 @@ class SecondInnerFragment :BaseFragment() {
     override fun getText() = "SecondInnerFragment"
 
     override fun onClick() {
-        val intent = Intent(activity, ThirdActivity::class.java)
+        val launcher = object : ActivityIntentLauncher {
 
-        ActivityResult.get().start(this, intent, 3) { resultCode, data ->
-            if (Activity.RESULT_OK == resultCode) {
-                Toast.makeText(activity, "回调SecondInnerFragment", Toast.LENGTH_SHORT).show();
+            override fun createIntent() = Intent(activity, ThirdActivity::class.java)
+
+            override fun onActivityResult(resultCode: Int, data: Intent?) {
+                if (Activity.RESULT_OK == resultCode) {
+                    Toast.makeText(activity, "back to SecondInnerFragment", Toast.LENGTH_SHORT).show();
+                }
             }
         }
+
+        ActivityResult.with(this).start(launcher)
     }
 }
